@@ -42,21 +42,20 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-        .zoll-bg-blue { background-color: #0033a0; }
-        .zoll-bg-gray { background-color: #c0c0c0; }
+        .zoll-body-blue { background-color: #003C71; }
+        .zoll-bezel-gray { background-color: #B4B8B8; }
         .zoll-screen-bg { background-color: #1a1a1a; }
-        .zoll-text-green { color: #00ff00; }
-        .zoll-text-yellow { color: #ffff00; }
-        .zoll-text-blue { color: #00bfff; }
-        .zoll-text-pink { color: #ff69b4; }
-        .zoll-text-white { color: #ffffff; }
-        .zoll-text-cyan { color: #00ffff; }
+        .zoll-text-green { color: #32CD32; }
+        .zoll-text-yellow { color: #FFD700; }
+        .zoll-text-blue { color: #00BFFF; }
+        .zoll-text-pink { color: #FF69B4; }
+        .zoll-text-white { color: #FFFFFF; }
+        .zoll-text-cyan { color: #00FFFF; }
         
-        .btn-pacer { background-color: #00a859; }
-        .btn-analyze { background-color: #f39c12; }
-        .btn-energy { background-color: #f39c12; }
-        .btn-charge { background-color: #f39c12; }
-        .btn-shock { background-color: #e74c3c; }
+        .btn-green { background-color: #00A859; }
+        .btn-yellow { background-color: #F39C12; }
+        .btn-red { background-color: #E74C3C; }
+        .btn-gray { background-color: #4A4A4A; border: 1px solid #666;}
 
         .led {
             width: 10px;
@@ -69,8 +68,34 @@
         .led-yellow { background-color: #f1c40f; }
 
         .quick-access-btn {
-            background-color: #333;
-            border: 1px solid #555;
+            background-color: #2D2D2D;
+            border-top: 2px solid #555;
+            border-left: 2px solid #555;
+            border-right: 2px solid #111;
+            border-bottom: 2px solid #111;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            width: 80px;
+            height: 60px;
+            font-weight: 600;
+        }
+        .quick-access-btn:active {
+            border-top: 2px solid #111;
+            border-left: 2px solid #111;
+            border-right: 2px solid #555;
+            border-bottom: 2px solid #555;
+        }
+
+        .control-btn {
+             background-color: #2D2D2D;
+            border-top: 2px solid #555;
+            border-left: 2px solid #555;
+            border-right: 2px solid #111;
+            border-bottom: 2px solid #111;
             color: white;
             display: flex;
             flex-direction: column;
@@ -78,25 +103,49 @@
             justify-content: center;
             border-radius: 8px;
             width: 70px;
-            height: 60px;
+            height: 50px;
+        }
+        .control-btn:active {
+             border-top: 2px solid #111;
+            border-left: 2px solid #111;
+            border-right: 2px solid #555;
+            border-bottom: 2px solid #555;
         }
 
-        .control-btn {
-            background-color: #333;
-            border: 1px solid #555;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            width: 60px;
-            height: 60px;
+        .therapy-btn {
+            color: black;
+            font-weight: 700;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2), inset 0 -4px 0 rgba(0,0,0,0.3);
+            transition: all 0.1s ease;
+        }
+         .therapy-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 3px rgba(0,0,0,0.2), inset 0 -2px 0 rgba(0,0,0,0.3);
         }
         
-        /* Blinking animation for charging and shock ready */
+        .shock-btn {
+             width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: white;
+            border-width: 4px;
+            border-color: #B91C1C;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3), inset 0 -5px 0 rgba(0,0,0,0.4);
+        }
+        .shock-btn:active:not(:disabled) {
+             transform: translateY(2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3), inset 0 -2px 0 rgba(0,0,0,0.4);
+        }
+
         @keyframes blink {
-            50% { opacity: 0.5; }
+            50% { filter: brightness(0.7); }
         }
         .blinking {
             animation: blink 1s linear infinite;
@@ -110,546 +159,592 @@
 </head>
 <body class="bg-gray-800 flex items-center justify-center min-h-screen p-4">
     
-    <!-- Session Connector Modal -->
     <div id="session-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
         <div class="bg-gray-700 p-8 rounded-lg shadow-2xl text-white w-full max-w-md">
             <h2 class="text-2xl font-bold mb-4">Zoll X Simulator Control</h2>
-            <p class="mb-6">Enter a session ID to connect the simulator to a controller. Use the same ID on your controller device.</p>
+            <p class="mb-6">Enter a session ID to connect to a controller. Use the same ID on your controller device.</p>
             <input type="text" id="session-id-input" class="w-full p-3 bg-gray-800 rounded-md border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., training-room-1">
             <button id="connect-btn" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition-colors">Connect & Start Simulation</button>
-             <p class="mt-4 text-xs text-gray-400">If the session ID doesn't exist, a new one will be created with a default patient state (Normal Sinus Rhythm).</p>
+             <p class="mt-4 text-xs text-gray-400">If the ID doesn't exist, a new session will be created with default vitals.</p>
         </div>
     </div>
 
     <!-- Main Zoll Device Body -->
-    <div id="zoll-device" class="hidden w-full max-w-5xl bg-zoll-bg-gray p-4 rounded-2xl shadow-2xl border-4 border-gray-500">
+    <div id="zoll-device" class="hidden w-full max-w-4xl bg-zoll-bezel-gray p-2 rounded-2xl shadow-2xl border-4 border-gray-900">
         <div class="flex flex-col">
-            <!-- Top Handle -->
-            <div class="h-10 bg-gray-500 rounded-t-lg mb-2 mx-20"></div>
-            <!-- Main Body with Screen and Controls -->
-            <div class="bg-zoll-bg-blue p-4 rounded-xl flex flex-col lg:flex-row gap-4">
-
-                <!-- Screen and Side Buttons -->
-                <div class="flex-grow flex flex-col">
-                     <!-- Top Visual Alarm Indicators -->
-                    <div class="flex justify-center items-center gap-2 mb-2">
-                         <div id="alarm-indicator-red" class="alarm-indicator bg-red-800 rounded"></div>
-                         <div id="alarm-indicator-yellow" class="alarm-indicator bg-yellow-800 rounded"></div>
-                         <div id="alarm-indicator-cyan" class="alarm-indicator bg-cyan-800 rounded"></div>
+            <div class="h-12 bg-gray-500 rounded-t-lg mb-1 mx-24 flex items-center justify-center relative">
+                 <div class="absolute top-2 right-4 flex gap-2">
+                    <div id="power-led" class="w-4 h-4 bg-green-500 rounded-full border-2 border-gray-700"></div>
+                    <div id="rfu-indicator" class="text-green-500 font-bold">✓</div>
+                 </div>
+            </div>
+            <div class="bg-zoll-body-blue p-3 rounded-xl flex flex-col">
+                <div class="flex gap-2">
+                    <!-- Quick Access Keys -->
+                    <div id="quick-access-panel-1" class="flex flex-col justify-between space-y-1.5">
+                        <button id="btn-lead" class="quick-access-btn"><span>I, II, III...</span></button>
+                        <button id="btn-12-lead" class="quick-access-btn"><span class="font-bold text-xl">12</span><span class="text-xs -mt-1">LEAD</span></button>
+                        <button id="btn-co2" class="quick-access-btn"><span class="text-lg">CO₂</span><div class="w-2.5 h-2.5 rounded-full bg-green-500 mt-1"></div></button>
+                        <button class="quick-access-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7h-2a5 5 0 0 1-5 5v2z"></path><path d="M19 13a7 7 0 0 0-7-7v2a5 5 0 0 1 5 5h2z"></path><path d="M5 13a7 7 0 0 0 7 7v-2a5 5 0 0 1-5-5H5z"></path><path d="M12 5a7 7 0 0 0-7 7h2a5 5 0 0 1 5-5V5z"></path><line x1="12" y1="1" x2="12" y2="4"></line><line x1="12" y1="20" x2="12" y2="23"></line><line x1="4" y1="12" x2="1" y2="12"></line><line x1="23" y1="12" x2="20" y2="12"></line></svg><span class="text-xs mt-1">SYNC</span></button>
+                        <button class="quick-access-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-4"></path><rect x="8" y="1" width="8" height="4" rx="1" ry="1"></rect><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg><span class="text-xs mt-1">Rx</span></button>
+                        <button id="btn-more" class="quick-access-btn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9.5V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3.5"></path><path d="M10 12H2"></path><path d="m6 16 4-4-4-4"></path><path d="m22 12-4-4v2h-4v4h4v2l4-4z"></path></svg><span class="text-xs mt-1">More</span></button>
                     </div>
-                    <div class="flex gap-2">
-                        <!-- Quick Access Keys -->
-                        <div class="flex flex-col justify-between space-y-2">
-                            <button id="btn-lead" class="quick-access-btn">
-                                <span class="text-xs">I, II, III...</span>
-                            </button>
-                             <button id="btn-12-lead" class="quick-access-btn">
-                                <span class="font-bold text-lg">12</span>
-                                <span class="text-xs -mt-1">LEAD</span>
-                            </button>
-                            <button id="btn-co2" class="quick-access-btn">
-                                <span class="text-xs">CO₂</span>
-                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
-                            </button>
-                            <button id="btn-summary" class="quick-access-btn">
-                                <span>📄</span><span class="text-xs">Summary</span>
-                            </button>
-                             <button id="btn-alarms" class="quick-access-btn">
-                                <span>🔔</span> <span class="text-xs">Alarms</span>
-                            </button>
-                        </div>
-                        
-                        <!-- Main Display Screen -->
-                        <div id="screen" class="zoll-screen-bg flex-1 p-2 rounded-lg border-2 border-black grid grid-rows-3 grid-cols-1">
-                            <!-- Top Info Bar -->
-                            <div class="row-span-3 flex flex-col">
-                                <div class="flex justify-between items-center text-sm text-gray-400 px-2">
-                                    <span id="date-time">01/01/2025 12:00:00</span>
-                                    <span class="bg-blue-800 text-white px-3 py-0.5 rounded">Adult</span>
-                                    <div class="flex items-center gap-2">
-                                        <div id="battery-indicator" class="w-8 h-4 border-2 border-green-500 rounded flex items-center p-0.5"><div class="bg-green-500 h-full w-full rounded-sm"></div></div>
-                                        <span id="elapsed-time">00:00:00</span>
-                                    </div>
+
+                    <!-- Second Panel of Quick Access Keys -->
+                     <div id="quick-access-panel-2" class="hidden flex-col justify-between space-y-1.5">
+                        <button class="quick-access-btn"><span>BRIGHT</span></button>
+                        <button id="btn-alarms" class="quick-access-btn"><span>ALARMS</span></button>
+                        <button class="quick-access-btn"><span>LOG</span></button>
+                        <button class="quick-access-btn"><span>SETUP</span></button>
+                        <button class="quick-access-btn"><span>SUMMARY</span></button>
+                        <button id="btn-back" class="quick-access-btn"><span>BACK</span></button>
+                    </div>
+                    
+                    <!-- Main Display Screen -->
+                    <div id="screen" class="zoll-screen-bg flex-1 p-1 rounded-lg border-2 border-black relative">
+                        <div id="main-screen-view" class="h-full flex flex-col">
+                            <div class="flex justify-between items-center text-xs text-gray-400 px-2">
+                                <span><span id="date-time-val"></span></span>
+                                <span class="bg-blue-800 text-white px-2 py-0.5 rounded text-sm">Adult</span>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-3.5 border border-green-500 rounded flex items-center p-0.5"><div class="bg-green-500 h-full w-full rounded-sm"></div></div>
+                                    <span id="elapsed-time-val">00:00:00</span>
                                 </div>
-                                <div id="alarm-message-area" class="text-center font-bold text-xl h-8"></div>
-                                <!-- Waveform Area -->
-                                <div class="flex-grow relative">
-                                    <canvas id="ecg-canvas" class="w-full h-full"></canvas>
-                                </div>
-                                <!-- Vitals Area -->
-                                <div class="grid grid-cols-4 gap-1 p-1">
-                                    <div class="bg-[#003c00] text-center rounded-md p-1">
-                                        <span class="text-xs text-gray-300">HR bpm</span>
-                                        <div id="hr-value" class="text-6xl font-black zoll-text-green leading-none">--</div>
-                                    </div>
-                                    <div class="bg-[#00285f] text-center rounded-md p-1">
-                                        <span class="text-xs text-gray-300">NIBP mmHg</span>
-                                        <div id="nibp-value" class="text-4xl font-black zoll-text-blue leading-tight">--/--</div>
-                                        <div id="nibp-mean" class="text-xl text-gray-300">(--)</div>
-                                    </div>
-                                     <div class="bg-[#6a003a] text-center rounded-md p-1">
-                                        <span class="text-xs text-gray-300">EtCO2 mmHg</span>
-                                        <div id="etco2-value" class="text-6xl font-black zoll-text-pink leading-none">--</div>
-                                    </div>
-                                    <div class="bg-[#5f5f00] text-center rounded-md p-1 relative">
-                                        <span class="text-xs text-gray-300">SpO2 %</span>
-                                        <div id="spo2-value" class="text-6xl font-black zoll-text-yellow leading-none">--</div>
-                                        <div class="absolute right-1 bottom-1 w-2 h-10 bg-gray-600 rounded-sm"><div id="pleth-bar" class="w-full bg-yellow-400 rounded-sm" style="height: 80%;"></div></div>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-4 gap-1 p-1 text-sm">
-                                    <div class="text-center"><span class="text-gray-400">T1 °F:</span> <span id="temp-value">--.-</span></div>
-                                    <div class="text-center text-gray-400"><span id="nibp-timer">--:--</span></div>
-                                    <div class="text-center"><span class="text-gray-400">BR:</span> <span id="resp-value">--</span></div>
-                                    <div class="text-center"></div>
-                                </div>
+                            </div>
+                            <div id="alarm-message-container" class="text-center font-bold text-lg h-7 my-1"></div>
+                            <div class="flex-grow relative">
+                                <canvas id="waveform-canvas" class="w-full h-full"></canvas>
+                            </div>
+                            <div id="vitals-container" class="grid grid-cols-4 gap-1 p-1">
+                                <div class="bg-black border border-green-800 text-center rounded p-1"><span class="text-sm text-gray-400">HR</span><div id="hr-val" class="text-5xl font-black zoll-text-green leading-none">--</div></div>
+                                <div class="bg-black border border-blue-800 text-center rounded p-1"><span class="text-sm text-gray-400">NIBP</span><div id="nibp-val" class="text-3xl font-black zoll-text-blue leading-tight">--/--</div><div id="nibp-mean-val" class="text-lg text-gray-400">(--)</div></div>
+                                <div class="bg-black border border-pink-800 text-center rounded p-1"><span class="text-sm text-gray-400">EtCO2</span><div id="etco2-val" class="text-5xl font-black zoll-text-pink leading-none">--</div><span class="text-sm text-gray-400">BR <span id="resp-val">--</span></span></div>
+                                <div class="bg-black border border-yellow-800 text-center rounded p-1 relative"><span class="text-sm text-gray-400">SpO2 %</span><div id="spo2-val" class="text-5xl font-black zoll-text-yellow leading-none">--</div><div class="absolute right-1 bottom-1 w-1.5 h-8 bg-gray-600 rounded-sm"><div id="pleth-bar" class="w-full bg-yellow-400 rounded-sm" style="height: 80%;"></div></div></div>
                             </div>
                         </div>
 
-                        <!-- Right Side Controls -->
-                        <div class="flex flex-col justify-between space-y-2">
-                           <button class="control-btn" id="btn-silence"><span>🔇</span><span class="text-xs">Silence</span></button>
-                           <button class="control-btn" id="btn-display"><span>🖥️</span><span class="text-xs">Display</span></button>
-                           <button class="control-btn" id="btn-snapshot"><span>📸</span><span class="text-xs">Snapshot</span></button>
-                           <button class="control-btn" id="btn-nibp"><span>🩸</span><span class="text-xs">NIBP</span></button>
+                        <div id="12-lead-screen-view" class="hidden h-full flex flex-col p-2 text-green-400 font-mono text-sm">
+                            <div class="flex-grow grid grid-cols-4 gap-x-4">
+                                <!-- Col 1 -->
+                                <div class="flex flex-col justify-around"><div>I</div><div>aVR</div></div>
+                                <!-- Col 2 -->
+                                <div class="flex flex-col justify-around"><div>II</div><div>aVL</div></div>
+                                <!-- Col 3 -->
+                                <div class="flex flex-col justify-around"><div>III</div><div>aVF</div></div>
+                                <!-- Col 4 Vitals -->
+                                <div class="flex flex-col justify-around text-right text-white text-base font-sans">
+                                    <div><span class="text-sm text-gray-400">HR</span> <span id="hr-12lead" class="text-2xl font-bold zoll-text-green">--</span></div>
+                                    <div><span class="text-sm text-gray-400">SpO2</span> <span id="spo2-12lead" class="text-2xl font-bold zoll-text-yellow">--</span></div>
+                                    <div><span class="text-sm text-gray-400">NIBP</span> <span id="nibp-12lead" class="text-lg font-bold zoll-text-blue">--/--</span></div>
+                                </div>
+                            </div>
+                             <canvas id="12-lead-canvas" class="absolute inset-0 w-full h-full opacity-80"></canvas>
+                        </div>
+
+                        <!-- On-screen menus -->
+                        <div id="lead-select-menu" class="hidden absolute top-1/4 left-1/4 w-1/2 bg-gray-800 bg-opacity-90 border-2 border-gray-500 rounded-lg p-4 text-white">
+                            <h3 class="text-lg font-bold text-center mb-4">Select Lead Source</h3>
+                            <div id="lead-options" class="grid grid-cols-3 gap-2 text-center"></div>
                         </div>
                     </div>
+
+                    <!-- Right Side Controls -->
+                    <div class="flex flex-col justify-between items-center space-y-2">
+                        <button class="control-btn" id="btn-alarm-silence"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c1.1 0 2-.9 2-2v-1H10v1c0 1.1.9 2 2 2z"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><path d="M2 8c0-2.2.7-4.3 2-6"></path><path d="M22 8a10 10 0 0 0-2-6"></path><path d="M12 2a10 10 0 0 0-8 4"></path><path d="M12 2a10 10 0 0 1 8 4"></path><path d="m2 2 20 20"></path></svg><span class="text-xs">Silence</span></button>
+                        <div class="flex flex-col items-center gap-2">
+                            <button class="w-10 h-10 rounded-full btn-gray flex items-center justify-center text-2xl">▲</button>
+                            <button class="w-12 h-12 rounded-lg btn-gray">SELECT</button>
+                            <button class="w-10 h-10 rounded-full btn-gray flex items-center justify-center text-2xl">▼</button>
+                        </div>
+                        <button class="control-btn" id="btn-snapshot"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg><span class="text-xs">Snapshot</span></button>
+                        <button class="control-btn" id="btn-nibp-start"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.7 10.3a2.41 2.41 0 0 0 0 3.41 2.41 2.41 0 0 0 3.41 0L8 12l-1.89-1.89a2.41 2.41 0 0 0-3.41 0z"></path><path d="M21.3 13.7a2.41 2.41 0 0 0 0-3.41 2.41 2.41 0 0 0-3.41 0L16 12l1.89 1.89a2.41 2.41 0 0 0 3.41 0z"></path><path d="M12 3v18"></path></svg><span class="text-xs">NIBP</span></button>
+                    </div>
                 </div>
-            </div>
-             <!-- Bottom Control Panel -->
-            <div class="bg-zoll-bg-blue p-4 rounded-b-xl flex justify-center items-center gap-4 mt-2">
-                <div class="flex items-center gap-1">
+
+                <div class="bg-zoll-body-blue p-3 rounded-b-xl flex justify-center items-center gap-4 mt-1 border-t-2 border-gray-900">
+                    <div class="flex items-center gap-2">
+                        <div class="flex flex-col items-center"><div class="led led-off" id="aux-power-led"></div><span class="text-xs text-gray-400">AUX</span></div>
+                        <div class="flex flex-col items-center"><div class="led led-off" id="battery-charge-led"></div><span class="text-xs text-gray-400">BATT</span></div>
+                    </div>
+                    <button id="btn-pacer-toggle" class="therapy-btn btn-green">PACER</button>
+                    <button id="btn-analyze" class="therapy-btn btn-yellow">ANALYZE</button>
                     <div class="flex flex-col items-center">
-                        <div class="led led-off" id="aux-power-led"></div>
-                        <span class="text-xs text-gray-400">AUX</span>
-                    </div>
-                     <div class="flex flex-col items-center">
-                        <div class="led led-off" id="battery-charge-led"></div>
-                        <span class="text-xs text-gray-400">BATT</span>
-                    </div>
-                </div>
-
-                <button id="btn-pacer" class="btn-pacer text-white font-bold py-4 px-6 rounded-lg shadow-md">PACER</button>
-                <button id="btn-analyze" class="btn-analyze text-black font-bold py-4 px-6 rounded-lg shadow-md">ANALYZE</button>
-                
-                <div class="flex flex-col items-center">
-                    <span class="text-xs text-white">ENERGY SELECT</span>
-                    <div class="flex gap-2">
-                        <button id="btn-energy-down" class="btn-energy text-black text-2xl font-bold w-12 h-12 rounded-lg shadow-md">▼</button>
-                        <button id="btn-energy-up" class="btn-energy text-black text-2xl font-bold w-12 h-12 rounded-lg shadow-md">▲</button>
-                    </div>
-                </div>
-
-                <button id="btn-charge" class="btn-charge text-black font-bold py-4 px-6 rounded-lg shadow-md">CHARGE</button>
-                <div class="flex flex-col items-center">
-                     <div class="flex items-baseline gap-2">
-                        <span class="text-2xl font-bold text-white">3</span>
-                        <div id="shock-btn-container" class="relative">
-                            <button id="btn-shock" class="btn-shock text-white w-20 h-20 rounded-full flex items-center justify-center text-4xl font-extrabold shadow-lg border-4 border-red-800 disabled:opacity-50 disabled:cursor-not-allowed" disabled>⚡</button>
+                        <span class="text-xs text-white">ENERGY SELECT</span>
+                        <div class="flex gap-2">
+                            <button id="btn-energy-down" class="therapy-btn btn-yellow text-2xl w-12 h-12 flex items-center justify-center">▼</button>
+                            <button id="btn-energy-up" class="therapy-btn btn-yellow text-2xl w-12 h-12 flex items-center justify-center">▲</button>
                         </div>
                     </div>
-                    <div id="defib-status-display" class="text-white font-bold mt-2 h-6"></div>
+                    <button id="btn-charge" class="therapy-btn btn-yellow">CHARGE</button>
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl font-bold text-white">3</span>
+                        <button id="btn-shock" class="shock-btn btn-red disabled:opacity-50 disabled:cursor-not-allowed" disabled>⚡</button>
+                    </div>
                 </div>
+                 <div id="defib-status-container" class="text-center text-white font-bold mt-2 h-6"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- GLOBAL STATE & CONFIGURATION ---
-        let state = {
-            sessionId: null,
-            patient: {
-                vitals: { hr: 80, spo2: 98, etco2: 38, resp: 12, temp: 98.6, nibp: "120/80", nibpMean: 93 },
-                ecg: { rhythm: 'NSR', lead: 'II', pacerSpikes: false },
-                deviceState: {
-                    mode: 'Monitor', // Monitor, AED, ManualDefib, Pacer
-                    defib: { energy: 120, status: 'disarmed' },
-                    pacer: { active: false, mode: 'Demand', rate: 70, output: 50 },
-                    alarmsOn: true,
-                },
-                events: []
-            },
-            ui: {
-                isCharging: false,
-                chargeStartTime: 0,
-                chargeDuration: 4000, // 4 seconds to charge
-                metronomeOn: false,
-                lastNIBPTime: null,
-                elapsedTimeCounter: 0,
+// --- GLOBAL STATE & CONFIGURATION ---
+let state = {
+    sessionId: null,
+    patient: {
+        vitals: { hr: 80, spo2: 98, etco2: 38, resp: 12, temp: 98.6, nibp: "120/80", nibpMean: 93 },
+        ecg: { rhythm: 'NSR', lead: 'II' },
+        capno: { active: true },
+        alarms: { active: [], silenced: false, suspended: false },
+        deviceState: {
+            screenView: 'main', // 'main', '12-lead'
+            defib: { energy: 120, status: 'disarmed' },
+            pacer: { active: false, mode: 'Demand', rate: 70, output: 50 },
+            quickAccessPanel: 1,
+        },
+        events: []
+    },
+    ui: {
+        isCharging: false,
+        chargeStartTime: 0,
+        chargeDuration: 4000, 
+        lastNIBPTime: null,
+        elapsedTimeCounter: 0,
+    }
+};
+
+let db, auth;
+let unsubscribePatient;
+
+// --- FIREBASE & INITIALIZATION ---
+function initializeAppState(signInAnonymously, onAuthStateChanged) {
+    if (!window.firebaseServices) {
+        console.error("Firebase services not available.");
+        document.getElementById('session-modal').innerHTML = '<div class="bg-red-500 p-8 rounded-lg shadow-2xl text-white w-full max-w-md"><h2 class="text-2xl font-bold mb-4">Firebase Not Configured</h2><p>Please provide your Firebase project configuration in the script tag.</p></div>';
+        return;
+    }
+    auth = window.firebaseServices.auth;
+    db = window.firebaseServices.db;
+    onAuthStateChanged(auth, user => {
+        if (user) {
+            console.log("Authenticated anonymously:", user.uid);
+        } else {
+            signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+        }
+    });
+}
+
+async function connectToSession(sessionId) {
+    if (unsubscribePatient) unsubscribePatient();
+    state.sessionId = sessionId;
+    const patientDocRef = window.firebaseServices.doc(db, `zoll-sim-sessions/${sessionId}`);
+    unsubscribePatient = window.firebaseServices.onSnapshot(patientDocRef, (doc) => {
+        if (doc.exists()) {
+            state.patient = { ...state.patient, ...doc.data() };
+        } else {
+            window.firebaseServices.setDoc(patientDocRef, state.patient);
+        }
+        updateUI();
+    }, (error) => console.error("Error listening to patient document:", error));
+    document.getElementById('session-modal').classList.add('hidden');
+    document.getElementById('zoll-device').classList.remove('hidden');
+}
+
+async function updateRemoteState(partialState) {
+    if (!state.sessionId) return;
+    const patientDocRef = window.firebaseServices.doc(db, `zoll-sim-sessions/${state.sessionId}`);
+    await window.firebaseServices.updateDoc(patientDocRef, partialState);
+}
+
+async function logEvent(eventDescription, details = {}) {
+     if (!state.sessionId) return;
+     const patientDocRef = window.firebaseServices.doc(db, `zoll-sim-sessions/${state.sessionId}`);
+     await window.firebaseServices.updateDoc(patientDocRef, {
+         events: window.firebaseServices.arrayUnion({
+             timestamp: window.firebaseServices.serverTimestamp(),
+             event: eventDescription, ...details
+         })
+     });
+}
+
+// --- UI BINDING & LISTENERS ---
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('connect-btn').addEventListener('click', () => {
+        const sessionId = document.getElementById('session-id-input').value.trim();
+        if (sessionId) connectToSession(sessionId);
+        else alert('Please enter a session ID.');
+    });
+
+    // Therapy Controls
+    document.getElementById('btn-energy-up').addEventListener('click', () => changeEnergy(true));
+    document.getElementById('btn-energy-down').addEventListener('click', () => changeEnergy(false));
+    document.getElementById('btn-charge').addEventListener('click', chargeDefib);
+    document.getElementById('btn-shock').addEventListener('click', deliverShock);
+    document.getElementById('btn-analyze').addEventListener('click', analyzeRhythm);
+    document.getElementById('btn-pacer-toggle').addEventListener('click', togglePacer);
+    
+    // Side Controls
+    document.getElementById('btn-nibp-start').addEventListener('click', startNIBP);
+    document.getElementById('btn-alarm-silence').addEventListener('click', silenceAlarms);
+
+    // Quick Access Keys
+    document.getElementById('btn-more').addEventListener('click', () => toggleQuickAccessPanel(2));
+    document.getElementById('btn-back').addEventListener('click', () => toggleQuickAccessPanel(1));
+    document.getElementById('btn-lead').addEventListener('click', showLeadSelectMenu);
+    document.getElementById('btn-12-lead').addEventListener('click', toggle12LeadView);
+    document.getElementById('btn-alarms').addEventListener('click', toggleAlarms);
+});
+
+// --- SIMULATOR LOGIC ---
+function changeEnergy(increase) {
+    const energies = [1,2,3,4,5,6,7,8,9,10,15,20,30,50,70,85,100,120,150,200];
+    let currentIndex = energies.indexOf(state.patient.deviceState.defib.energy);
+    currentIndex += increase ? 1 : -1;
+    currentIndex = Math.max(0, Math.min(energies.length - 1, currentIndex));
+    const newEnergy = energies[currentIndex];
+    
+    const updates = { 'deviceState.defib.energy': newEnergy };
+    if (state.patient.deviceState.defib.status === 'charged') {
+        updates['deviceState.defib.status'] = 'disarmed';
+    }
+    updateRemoteState(updates);
+    logEvent(`Energy selected: ${newEnergy}J`);
+}
+
+function chargeDefib() {
+    if (state.ui.isCharging || state.patient.deviceState.defib.status === 'charged') return;
+    state.ui.isCharging = true;
+    state.ui.chargeStartTime = performance.now();
+    updateRemoteState({'deviceState.defib.status': 'charging'});
+    logEvent(`Charging to ${state.patient.deviceState.defib.energy}J`);
+}
+
+function deliverShock() {
+    if (state.patient.deviceState.defib.status !== 'charged') return;
+    document.getElementById('screen').classList.add('bg-white', 'opacity-80');
+    setTimeout(() => document.getElementById('screen').classList.remove('bg-white', 'opacity-80'), 150);
+    logEvent(`Shock delivered`, { energy: state.patient.deviceState.defib.energy });
+    const newRhythm = (state.patient.ecg.rhythm === 'VF' || state.patient.ecg.rhythm === 'VT') ? 'Asystole' : state.patient.ecg.rhythm;
+    updateRemoteState({
+        'deviceState.defib.status': 'disarmed',
+        'ecg.rhythm': newRhythm
+    });
+}
+
+function analyzeRhythm() {
+    logEvent("Rhythm analysis started");
+    const defibStatusDisplay = document.getElementById('defib-status-container');
+    defibStatusDisplay.textContent = "ANALYZING...";
+    setTimeout(() => {
+        const rhythm = state.patient.ecg.rhythm;
+        if (['VF', 'VT'].includes(rhythm)) {
+            updateRemoteState({'deviceState.defib.status': 'shock_advised'});
+            logEvent("Analysis complete: Shock advised");
+            chargeDefib();
+        } else {
+            updateRemoteState({'deviceState.defib.status': 'no_shock_advised'});
+            logEvent("Analysis complete: No shock advised");
+        }
+    }, 5000);
+}
+
+function togglePacer() {
+    const newPacerState = !state.patient.deviceState.pacer.active;
+    updateRemoteState({'deviceState.pacer.active': newPacerState});
+    logEvent(newPacerState ? 'Pacer ON' : 'Pacer OFF');
+}
+
+function startNIBP() {
+    if (state.ui.lastNIBPTime && (Date.now() - state.ui.lastNIBPTime < 15000)) return;
+    state.ui.lastNIBPTime = Date.now();
+    logEvent("NIBP measurement started");
+    document.getElementById('nibp-val').textContent = "---/---";
+    document.getElementById('nibp-mean-val').textContent = "(---)";
+    // In a real scenario, a controller would update the vitals. Here we just log.
+}
+
+function toggleQuickAccessPanel(panel) {
+    document.getElementById('quick-access-panel-1').classList.toggle('hidden', panel === 2);
+    document.getElementById('quick-access-panel-2').classList.toggle('hidden', panel === 1);
+}
+
+function showLeadSelectMenu() {
+    const menu = document.getElementById('lead-select-menu');
+    const optionsContainer = document.getElementById('lead-options');
+    optionsContainer.innerHTML = '';
+    const leads = ['Pads', 'I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V'];
+    leads.forEach(lead => {
+        const btn = document.createElement('button');
+        btn.className = 'p-2 bg-gray-700 rounded hover:bg-blue-600';
+        btn.textContent = lead;
+        btn.onclick = () => selectLead(lead);
+        optionsContainer.appendChild(btn);
+    });
+    menu.classList.remove('hidden');
+}
+
+function selectLead(lead) {
+    updateRemoteState({'ecg.lead': lead});
+    logEvent(`Lead changed to ${lead}`);
+    document.getElementById('lead-select-menu').classList.add('hidden');
+}
+
+function toggle12LeadView() {
+    const newView = state.patient.deviceState.screenView === 'main' ? '12-lead' : 'main';
+    updateRemoteState({'deviceState.screenView': newView});
+    logEvent(`Screen view changed to ${newView}`);
+}
+
+function toggleAlarms() {
+    const suspended = !state.patient.alarms.suspended;
+    updateRemoteState({'alarms.suspended': suspended});
+    logEvent(suspended ? 'Alarms Suspended' : 'Alarms Enabled');
+}
+
+function silenceAlarms() {
+    if (state.patient.alarms.active.length > 0) {
+        updateRemoteState({'alarms.silenced': true});
+        logEvent('Alarms silenced');
+        setTimeout(() => {
+            if (state.patient.alarms.silenced) {
+                updateRemoteState({'alarms.silenced': false});
+                logEvent('Alarms auto-unsilenced');
             }
-        };
+        }, 90000); // 90 seconds
+    }
+}
 
-        let db, auth;
-        let unsubscribePatient; // To store the Firestore listener
 
-        // --- FIREBASE & INITIALIZATION ---
-        function initializeAppState(signInAnonymously, onAuthStateChanged) {
-            if (!window.firebaseServices) {
-                console.error("Firebase services not available.");
-                // Fallback for local testing without Firebase config
-                document.getElementById('session-modal').innerHTML = '<div class="bg-red-500 p-8 rounded-lg shadow-2xl text-white w-full max-w-md"><h2 class="text-2xl font-bold mb-4">Firebase Not Configured</h2><p>Please provide your Firebase project configuration in the script tag to enable remote control features.</p></div>';
-                return;
+// --- UI UPDATE & RENDERING ---
+function updateUI() {
+    const { vitals, ecg, alarms, deviceState } = state.patient;
+    
+    // Vitals
+    document.getElementById('hr-val').textContent = vitals.hr;
+    document.getElementById('spo2-val').textContent = vitals.spo2;
+    document.getElementById('etco2-val').textContent = vitals.etco2;
+    document.getElementById('nibp-val').textContent = vitals.nibp;
+    document.getElementById('nibp-mean-val').textContent = `(${vitals.nibpMean})`;
+    document.getElementById('resp-val').textContent = vitals.resp;
+    document.getElementById('hr-12lead').textContent = vitals.hr;
+    document.getElementById('spo2-12lead').textContent = vitals.spo2;
+    document.getElementById('nibp-12lead').textContent = vitals.nibp;
+
+
+    // Defib Status
+    const { status: defibStatus, energy } = deviceState.defib;
+    const defibDisplay = document.getElementById('defib-status-container');
+    const chargeBtn = document.getElementById('btn-charge');
+    const shockBtn = document.getElementById('btn-shock');
+
+    shockBtn.disabled = true;
+    [chargeBtn, shockBtn].forEach(btn => btn.classList.remove('blinking'));
+    
+    switch (defibStatus) {
+        case 'charging':
+            defibDisplay.textContent = `CHARGING... ${energy} J`;
+            chargeBtn.classList.add('blinking');
+            break;
+        case 'charged':
+            defibDisplay.textContent = `${energy} J READY`;
+            shockBtn.disabled = false;
+            shockBtn.classList.add('blinking');
+            break;
+        case 'shock_advised':
+            defibDisplay.textContent = "SHOCK ADVISED";
+            break;
+        case 'no_shock_advised':
+            defibDisplay.textContent = "NO SHOCK ADVISED";
+            setTimeout(() => { if (defibDisplay.textContent === "NO SHOCK ADVISED") defibDisplay.textContent = ''; }, 2000);
+            break;
+        default:
+            defibDisplay.textContent = `${energy} J`;
+    }
+
+    // Screen View
+    document.getElementById('main-screen-view').classList.toggle('hidden', deviceState.screenView !== 'main');
+    document.getElementById('12-lead-screen-view').classList.toggle('hidden', deviceState.screenView !== '12-lead');
+    document.getElementById('btn-12-lead').textContent = deviceState.screenView === '12-lead' ? 'EXIT 12' : '12 LEAD';
+
+    // Alarms
+    const alarmContainer = document.getElementById('alarm-message-container');
+    alarmContainer.innerHTML = '';
+    const alarmBtn = document.getElementById('btn-alarms');
+    alarmBtn.textContent = alarms.suspended ? 'ALARMS ON' : 'SUSPEND';
+
+    if (alarms.active.length > 0 && !alarms.silenced && !alarms.suspended) {
+        const alarm = alarms.active[0];
+        const alarmBox = document.createElement('div');
+        alarmBox.className = 'bg-red-600 text-white rounded-md py-1';
+        alarmBox.textContent = alarm;
+        alarmContainer.appendChild(alarmBox);
+    } else if (alarms.silenced) {
+        alarmContainer.innerHTML = `<div class="text-yellow-500">ALARMS SILENCED</div>`;
+    } else if (alarms.suspended) {
+        alarmContainer.innerHTML = `<div class="text-yellow-500">ALARMS SUSPENDED</div>`;
+    }
+}
+
+// --- CANVAS & WAVEFORM DRAWING ---
+const canvas = document.getElementById('waveform-canvas');
+const ctx = canvas.getContext('2d');
+const canvas12 = document.getElementById('12-lead-canvas');
+const ctx12 = canvas12.getContext('2d');
+let width, height, width12, height12;
+let time = 0;
+const waveformData = new Array(2000).fill(0);
+let dataIndex = 0;
+
+function resizeAllCanvas() {
+    width = canvas.parentElement.clientWidth;
+    height = canvas.parentElement.clientHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    width12 = canvas12.parentElement.clientWidth;
+    height12 = canvas12.parentElement.clientHeight;
+    canvas12.width = width12;
+    canvas12.height = height12;
+}
+window.addEventListener('resize', resizeAllCanvas);
+
+function getECGValue(t, rhythm, hr = 75) {
+    const freq = hr / 60.0;
+    const period = 1.0 / freq;
+    t = t % period;
+    const p_dur = 0.09, t_dur = 0.18, qrs_dur = 0.11;
+    const p_amp = 0.15, q_amp = -0.1, r_amp = 1.0, s_amp = -0.25, t_amp = 0.3;
+    switch (rhythm) {
+        case 'VF': return (Math.random() - 0.5) * 1.5 + (Math.sin(t*50) * 0.2);
+        case 'VT': return Math.sin(t * freq * 2 * Math.PI * 2.5) * 0.8;
+        case 'Asystole': return (Math.random() - 0.5) * 0.05;
+        case 'NSR': default:
+            if (t < p_dur) return p_amp * Math.sin((t / p_dur) * Math.PI);
+            if (t > 0.1 && t < 0.1 + qrs_dur) {
+                const qrs_t = t - 0.1;
+                if (qrs_t < qrs_dur / 4) return (q_amp / (qrs_dur / 4)) * qrs_t;
+                if (qrs_t < qrs_dur / 2) return q_amp + ((r_amp - q_amp) / (qrs_dur/4)) * (qrs_t - qrs_dur/4);
+                if (qrs_t < (3*qrs_dur)/4) return r_amp + ((s_amp - r_amp) / (qrs_dur/4)) * (qrs_t - qrs_dur/2);
+                return s_amp + (-s_amp / (qrs_dur/4)) * (qrs_t - (3*qrs_dur)/4);
             }
-            auth = window.firebaseServices.auth;
-            db = window.firebaseServices.db;
-            
-            onAuthStateChanged(auth, user => {
-                if (user) {
-                    console.log("Authenticated anonymously:", user.uid);
-                } else {
-                    signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
-                }
-            });
-        }
-        
-        async function connectToSession(sessionId) {
-            if (unsubscribePatient) unsubscribePatient(); // Unsubscribe from previous session
-            state.sessionId = sessionId;
-            const patientDocRef = window.firebaseServices.doc(db, `zoll-sim-sessions/${sessionId}`);
+            if (t > 0.25 && t < 0.25 + t_dur) return t_amp * Math.sin(((t - 0.25) / t_dur) * Math.PI);
+            return 0;
+    }
+}
 
-            unsubscribePatient = window.firebaseServices.onSnapshot(patientDocRef, (doc) => {
-                if (doc.exists()) {
-                    console.log("Received remote state update");
-                    state.patient = doc.data();
-                } else {
-                    console.log("No such session! Creating new one with default state.");
-                    window.firebaseServices.setDoc(patientDocRef, state.patient);
-                }
-                updateUI();
-            }, (error) => {
-                console.error("Error listening to patient document:", error);
-            });
-            
-            document.getElementById('session-modal').classList.add('hidden');
-            document.getElementById('zoll-device').classList.remove('hidden');
-        }
+function getCapnoValue(t, resp = 12) {
+    const freq = resp / 60.0;
+    const period = 1.0 / freq;
+    t = t % period;
+    if (t < period / 2) { // Exhalation phase
+        const phase = t / (period / 2);
+        return 0.5 * (1 - Math.cos(phase * Math.PI)); // Plateau
+    }
+    return 0; // Inhalation
+}
 
-        async function updateRemoteState(partialState) {
-            if (!state.sessionId) return;
-            const patientDocRef = window.firebaseServices.doc(db, `zoll-sim-sessions/${state.sessionId}`);
-            await window.firebaseServices.updateDoc(patientDocRef, partialState);
-        }
+const capnoData = new Array(2000).fill(0);
 
-        async function logEvent(eventDescription, details = {}) {
-             if (!state.sessionId) return;
-             const patientDocRef = window.firebaseServices.doc(db, `zoll-sim-sessions/${state.sessionId}`);
-             await window.firebaseServices.updateDoc(patientDocRef, {
-                 events: window.firebaseServices.arrayUnion({
-                     timestamp: window.firebaseServices.serverTimestamp(),
-                     event: eventDescription,
-                     ...details
-                 })
-             });
+function animationLoop() {
+    // Update Timers
+    state.ui.elapsedTimeCounter++;
+    if (state.ui.elapsedTimeCounter % 60 === 0) {
+        const totalSeconds = Math.floor(state.ui.elapsedTimeCounter / 60);
+        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+        const seconds = String(totalSeconds % 60).padStart(2, '0');
+        document.getElementById('elapsed-time-val').textContent = `${hours}:${minutes}:${seconds}`;
+        const now = new Date();
+        document.getElementById('date-time-val').textContent = now.toLocaleString([], { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'});
+    }
+
+    if (state.ui.isCharging && (performance.now() - state.ui.chargeStartTime >= state.ui.chargeDuration)) {
+        state.ui.isCharging = false;
+        updateRemoteState({'deviceState.defib.status': 'charged'});
+    }
+
+    // --- Main Screen Drawing ---
+    if (state.patient.deviceState.screenView === 'main') {
+        ctx.clearRect(0, 0, width, height);
+        // Data update
+        const samplesToDraw = 5;
+        for(let i=0; i<samplesToDraw; i++){
+            waveformData[dataIndex] = getECGValue(time, state.patient.ecg.rhythm, state.patient.vitals.hr);
+            capnoData[dataIndex] = getCapnoValue(time, state.patient.vitals.resp);
+            dataIndex = (dataIndex + 1) % waveformData.length;
+            time += 0.004;
         }
 
-
-        // --- UI BINDING & LISTENERS ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const connectBtn = document.getElementById('connect-btn');
-            const sessionIdInput = document.getElementById('session-id-input');
-            
-            connectBtn.addEventListener('click', () => {
-                const sessionId = sessionIdInput.value.trim();
-                if (sessionId) {
-                    connectToSession(sessionId);
-                } else {
-                    alert('Please enter a session ID.');
-                }
-            });
-
-            // Button listeners
-            document.getElementById('btn-energy-up').addEventListener('click', () => changeEnergy(true));
-            document.getElementById('btn-energy-down').addEventListener('click', () => changeEnergy(false));
-            document.getElementById('btn-charge').addEventListener('click', chargeDefib);
-            document.getElementById('btn-shock').addEventListener('click', deliverShock);
-            document.getElementById('btn-analyze').addEventListener('click', analyzeRhythm);
-            document.getElementById('btn-pacer').addEventListener('click', togglePacer);
-            document.getElementById('btn-nibp').addEventListener('click', startNIBP);
-        });
-        
-        // --- SIMULATOR LOGIC ---
-        function changeEnergy(increase) {
-            const energies = [1,2,3,4,5,6,7,8,9,10,15,20,30,50,70,85,100,120,150,200];
-            let currentIndex = energies.indexOf(state.patient.deviceState.defib.energy);
-            if (increase && currentIndex < energies.length - 1) {
-                currentIndex++;
-            } else if (!increase && currentIndex > 0) {
-                currentIndex--;
-            }
-            const newEnergy = energies[currentIndex];
-            updateRemoteState({ 'deviceState.defib.energy': newEnergy });
-            logEvent(`Energy selected: ${newEnergy}J`);
-            
-            // Disarm if charged
-            if(state.patient.deviceState.defib.status === 'charged') {
-                updateRemoteState({'deviceState.defib.status': 'disarmed'});
-            }
+        // Draw ECG
+        ctx.strokeStyle = '#32CD32';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        const vCenterECG = height / 3;
+        const amplitudeECG = 40;
+        for (let i = 0; i < width; i++) {
+            const idx = (dataIndex + i - width + waveformData.length) % waveformData.length;
+            const y = vCenterECG - waveformData[idx] * amplitudeECG;
+            i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
         }
+        ctx.stroke();
+        ctx.fillStyle = '#32CD32';
+        ctx.font = 'bold 14px Inter';
+        ctx.fillText(state.patient.ecg.lead || 'II', 10, vCenterECG - amplitudeECG - 5);
+        ctx.fillText("1 cm/mV", 50, vCenterECG - amplitudeECG - 5);
 
-        function chargeDefib() {
-            if (state.ui.isCharging || state.patient.deviceState.defib.status === 'charged') return;
-            
-            state.ui.isCharging = true;
-            state.ui.chargeStartTime = performance.now();
-            updateRemoteState({'deviceState.defib.status': 'charging'});
-            logEvent(`Charging to ${state.patient.deviceState.defib.energy}J`);
-            
-            // The animation loop will handle the rest
-        }
-
-        function deliverShock() {
-            if (state.patient.deviceState.defib.status !== 'charged') return;
-
-            // Simulate shock flash
-            const screen = document.getElementById('screen');
-            screen.classList.add('bg-white');
-            setTimeout(() => screen.classList.remove('bg-white'), 100);
-
-            logEvent(`Shock delivered`, { energy: state.patient.deviceState.defib.energy });
-
-            // Disarm after shock
-            updateRemoteState({
-                'deviceState.defib.status': 'disarmed',
-                // If rhythm was VF/VT, change to Asystole post-shock
-                'ecg.rhythm': (state.patient.ecg.rhythm === 'VF' || state.patient.ecg.rhythm === 'VT') ? 'Asystole' : state.patient.ecg.rhythm
-            });
-        }
-        
-        function analyzeRhythm() {
-            logEvent("Rhythm analysis started");
-            const defibStatusDisplay = document.getElementById('defib-status-display');
-            defibStatusDisplay.textContent = "ANALYZING...";
-            
-            setTimeout(() => {
-                const rhythm = state.patient.ecg.rhythm;
-                if (rhythm === 'VF' || rhythm === 'VT') {
-                    defibStatusDisplay.textContent = "SHOCK ADVISED";
-                    updateRemoteState({'deviceState.defib.status': 'shock_advised'});
-                    logEvent("Analysis complete: Shock advised");
-                    chargeDefib();
-                } else {
-                    defibStatusDisplay.textContent = "NO SHOCK ADVISED";
-                    logEvent("Analysis complete: No shock advised");
-                    setTimeout(() => defibStatusDisplay.textContent = "", 2000);
-                }
-            }, 5000); // 5 second analysis
-        }
-
-        function togglePacer() {
-            const newPacerState = !state.patient.deviceState.pacer.active;
-            updateRemoteState({'deviceState.pacer.active': newPacerState});
-            logEvent(newPacerState ? 'Pacer ON' : 'Pacer OFF');
-        }
-
-        function startNIBP() {
-            if (state.ui.lastNIBPTime && (Date.now() - state.ui.lastNIBPTime < 15000)) return; // prevent spamming
-            state.ui.lastNIBPTime = Date.now();
-            logEvent("NIBP measurement started");
-            const nibpDisplay = document.getElementById('nibp-value');
-            const nibpMeanDisplay = document.getElementById('nibp-mean');
-            nibpDisplay.textContent = "---/---";
-            nibpMeanDisplay.textContent = "(---)";
-            
-            setTimeout(() => {
-                logEvent("NIBP measurement complete");
-                // The onSnapshot will update the display with the new value from remote.
-                // For local simulation, you would update the state here.
-            }, 10000); // 10 second measurement
-        }
-
-        // --- UI UPDATE & RENDERING ---
-        function updateUI() {
-            const patientData = state.patient;
-            
-            // Vitals
-            document.getElementById('hr-value').textContent = patientData.vitals.hr;
-            document.getElementById('spo2-value').textContent = patientData.vitals.spo2;
-            document.getElementById('etco2-value').textContent = patientData.vitals.etco2;
-            document.getElementById('nibp-value').textContent = patientData.vitals.nibp;
-            document.getElementById('nibp-mean').textContent = `(${patientData.vitals.nibpMean})`;
-            document.getElementById('temp-value').textContent = patientData.vitals.temp;
-            document.getElementById('resp-value').textContent = patientData.vitals.resp;
-
-            // Defib Status
-            const defibStatus = patientData.deviceState.defib.status;
-            const energy = patientData.deviceState.defib.energy;
-            const defibStatusDisplay = document.getElementById('defib-status-display');
-            const chargeBtn = document.getElementById('btn-charge');
-            const shockBtn = document.getElementById('btn-shock');
-
-            shockBtn.disabled = true;
-            chargeBtn.classList.remove('blinking');
-            shockBtn.classList.remove('blinking');
-            defibStatusDisplay.textContent = `${energy} J`;
-
-            if (defibStatus === 'charging') {
-                defibStatusDisplay.textContent = `CHARGING... ${energy} J`;
-                chargeBtn.classList.add('blinking');
-            } else if (defibStatus === 'charged') {
-                defibStatusDisplay.textContent = `${energy} J READY`;
-                shockBtn.disabled = false;
-                shockBtn.classList.add('blinking');
-            } else if (defibStatus === 'shock_advised') {
-                defibStatusDisplay.textContent = "SHOCK ADVISED";
-            }
-        }
-        
-        // --- CANVAS & WAVEFORM DRAWING ---
-        const canvas = document.getElementById('ecg-canvas');
-        const ctx = canvas.getContext('2d');
-        let width, height;
-        let time = 0;
-        
-        function resizeCanvas() {
-            width = canvas.parentElement.clientWidth;
-            height = canvas.parentElement.clientHeight;
-            canvas.width = width;
-            canvas.height = height;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        
-        function drawGrid() {
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 0.5;
-            
-            // Major grid
-            for (let x = 0; x < width; x += 25) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
-                ctx.stroke();
-            }
-            for (let y = 0; y < height; y += 25) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(width, y);
-                ctx.stroke();
-            }
-            // Minor grid
-             ctx.strokeStyle = '#222';
-            for (let x = 0; x < width; x += 5) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, height);
-                ctx.stroke();
-            }
-            for (let y = 0; y < height; y += 5) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(width, y);
-                ctx.stroke();
-            }
-        }
-        
-        function getECGValue(t, rhythm) {
-            const hr = state.patient.vitals.hr || 75;
-            const freq = hr / 60.0;
-            const period = 1.0 / freq;
-            t = t % period;
-            
-            const p_dur = 0.09, t_dur = 0.18, qrs_dur = 0.11;
-            const p_amp = 0.15, q_amp = -0.1, r_amp = 1.0, s_amp = -0.25, t_amp = 0.3;
-
-            switch (rhythm) {
-                case 'VF':
-                    return (Math.random() - 0.5) * 1.5 + (Math.sin(t*50) * 0.2);
-                case 'VT':
-                     return Math.sin(t * freq * 2 * Math.PI * 2.5) * 0.8;
-                case 'Asystole':
-                    return (Math.random() - 0.5) * 0.05;
-                case 'NSR':
-                default:
-                    // P wave
-                    if (t < p_dur) return p_amp * Math.sin((t / p_dur) * Math.PI);
-                    // QRS complex
-                    if (t > 0.1 && t < 0.1 + qrs_dur) {
-                        const qrs_t = t - 0.1;
-                        if (qrs_t < qrs_dur / 4) return (q_amp / (qrs_dur / 4)) * qrs_t;
-                        if (qrs_t < qrs_dur / 2) return q_amp + ((r_amp - q_amp) / (qrs_dur/4)) * (qrs_t - qrs_dur/4);
-                        if (qrs_t < (3*qrs_dur)/4) return r_amp + ((s_amp - r_amp) / (qrs_dur/4)) * (qrs_t - qrs_dur/2);
-                        return s_amp + (-s_amp / (qrs_dur/4)) * (qrs_t - (3*qrs_dur)/4);
-                    }
-                    // T wave
-                    if (t > 0.25 && t < 0.25 + t_dur) {
-                        const t_t = t - 0.25;
-                        return t_amp * Math.sin((t_t / t_dur) * Math.PI);
-                    }
-                    return 0; // Isoelectric line
-            }
-        }
-        
-        const waveformData = new Array(2000).fill(0);
-        let dataIndex = 0;
-
-        function animationLoop(timestamp) {
-            // Update elapsed time
-            state.ui.elapsedTimeCounter++;
-            if (state.ui.elapsedTimeCounter % 60 === 0) {
-                const totalSeconds = Math.floor(state.ui.elapsedTimeCounter / 60);
-                const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-                const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-                const seconds = String(totalSeconds % 60).padStart(2, '0');
-                document.getElementById('elapsed-time').textContent = `${hours}:${minutes}:${seconds}`;
-
-                // Update date/time every minute
-                if (minutes % 1 === 0 && seconds === "00") {
-                    const now = new Date();
-                    document.getElementById('date-time').textContent = now.toLocaleString();
-                }
-            }
-
-            // Charging logic
-            if(state.ui.isCharging) {
-                const elapsedTime = performance.now() - state.ui.chargeStartTime;
-                if (elapsedTime >= state.ui.chargeDuration) {
-                    state.ui.isCharging = false;
-                    updateRemoteState({'deviceState.defib.status': 'charged'});
-                }
-            }
-
-            // Drawing logic
-            ctx.clearRect(0, 0, width, height);
-            drawGrid();
-
-            const samplesToDraw = 5;
-            for(let i=0; i<samplesToDraw; i++){
-                const y = getECGValue(time, state.patient.ecg.rhythm);
-                waveformData[dataIndex] = y;
-                dataIndex = (dataIndex + 1) % waveformData.length;
-                time += 0.004;
-            }
-
-            ctx.strokeStyle = '#00ff00';
-            ctx.lineWidth = 2;
+        // Draw Capno
+        if (state.patient.capno.active) {
+            ctx.strokeStyle = '#FF69B4';
             ctx.beginPath();
-            
-            const verticalCenter = height / 2.5; // ECG trace is usually in upper half
-            const amplitude = 50;
-            
+            const vCenterCapno = height * 0.7;
+            const amplitudeCapno = 50;
             for (let i = 0; i < width; i++) {
-                const idx = (dataIndex + i - width + waveformData.length) % waveformData.length;
-                const y = verticalCenter - waveformData[idx] * amplitude;
-                if (i === 0) {
-                    ctx.moveTo(i, y);
-                } else {
-                    ctx.lineTo(i, y);
-                }
+                const idx = (dataIndex + i - width + capnoData.length) % capnoData.length;
+                const y = vCenterCapno - capnoData[idx] * amplitudeCapno;
+                i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
             }
             ctx.stroke();
-            
-            // Draw lead name
-            ctx.fillStyle = '#00ff00';
-            ctx.font = '16px Inter';
-            ctx.fillText(state.patient.ecg.lead || 'II', 10, 20);
+            ctx.fillStyle = '#FF69B4';
+            ctx.font = 'bold 14px Inter';
+            ctx.fillText("CO2", 10, vCenterCapno - amplitudeCapno - 5);
+             ctx.fillText("0 to 60 mmHg", 50, vCenterCapno - amplitudeCapno - 5);
+        }
+    } else {
+        // --- 12-lead Drawing ---
+        ctx12.clearRect(0,0,width12,height12);
+        ctx12.strokeStyle = '#32CD32';
+        ctx12.lineWidth = 1;
+        
+        const leads = ['I', 'II', 'III', 'aVR', 'aVL', 'aVF', 'V1', 'V2', 'V3', 'V4', 'V5', 'V6'];
+        const numRows = 3;
+        const numCols = 4;
+        const rowHeight = height12 / numRows;
+        const colWidth = width12 / numCols;
+        
+        for (let row=0; row<numRows; row++) {
+            for (let col=0; col<numCols; col++) {
+                const leadIndex = row + col * numRows;
+                if (leadIndex >= leads.length) continue;
 
-            requestAnimationFrame(animationLoop);
+                const offsetX = col * colWidth;
+                const offsetY = row * rowHeight + rowHeight/2;
+                
+                ctx12.beginPath();
+                for (let i=0; i<colWidth; i++) {
+                     const t = time + (i - colWidth) * 0.004; // Simplified time for static-like display
+                     const y = offsetY - getECGValue(t, state.patient.ecg.rhythm, state.patient.vitals.hr) * 15;
+                     i === 0 ? ctx12.moveTo(i + offsetX, y) : ctx12.lineTo(i + offsetX, y);
+                }
+                 ctx12.stroke();
+            }
         }
 
-        resizeCanvas();
-        requestAnimationFrame(animationLoop);
+    }
 
+    requestAnimationFrame(animationLoop);
+}
 
+resizeAllCanvas();
+requestAnimationFrame(animationLoop);
     </script>
 </body>
 </html>
-
