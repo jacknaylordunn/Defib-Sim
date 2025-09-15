@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoll X Series Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <!-- Firebase Libraries -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc, updateDoc, arrayUnion, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+        // You can get this from your Firebase project settings
+        const firebaseConfig = {
+         apiKey: "AIzaSyBOncSGXi8-QpT108a_JPZtntloCXkcCJQ",
+         authDomain: "defib-sim.firebaseapp.com",
+         projectId: "defib-sim",
+         storageBucket: "defib-sim.firebasestorage.app",
+         messagingSenderId: "487758771885",
+         appId: "1:487758771885:web:a52f726a930f53fb8ff824",
+         measurementId: "G-HE67GWPE0Q"
+        };
+        
+        // Use provided config if available, otherwise use placeholder
+        const finalFirebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
+
+        // Initialize Firebase
+        const app = initializeApp(finalFirebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseServices = { auth, db, onSnapshot, doc, setDoc, updateDoc, arrayUnion, serverTimestamp };
+        window.initializeAppState(signInAnonymously, onAuthStateChanged);
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .zoll-bg-blue { background-color: #0033a0; }
+        .zoll-bg-gray { background-color: #c0c0c0; }
+        .zoll-screen-bg { background-color: #1a1a1a; }
+        .zoll-text-green { color: #00ff00; }
+        .zoll-text-yellow { color: #ffff00; }
+        .zoll-text-blue { color: #00bfff; }
+        .zoll-text-pink { color: #ff69b4; }
+        .zoll-text-white { color: #ffffff; }
+        .zoll-text-cyan { color: #00ffff; }
+        
+        .btn-pacer { background-color: #00a859; }
+        .btn-analyze { background-color: #f39c12; }
+        .btn-energy { background-color: #f39c12; }
+        .btn-charge { background-color: #f39c12; }
+        .btn-shock { background-color: #e74c3c; }
+
+        .led {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            border: 1px solid #444;
+        }
+        .led-off { background-color: #333; }
+        .led-green { background-color: #27ae60; }
+        .led-yellow { background-color: #f1c40f; }
+
+        .quick-access-btn {
+            background-color: #333;
+            border: 1px solid #555;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            width: 70px;
+            height: 60px;
+        }
+
+        .control-btn {
+            background-color: #333;
+            border: 1px solid #555;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            width: 60px;
+            height: 60px;
+        }
+        
+        /* Blinking animation for charging and shock ready */
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+        .blinking {
+            animation: blink 1s linear infinite;
+        }
+
+        .alarm-indicator {
+            height: 8px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-800 flex items-center justify-center min-h-screen p-4">
+    
+    <!-- Session Connector Modal -->
+    <div id="session-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+        <div class="bg-gray-700 p-8 rounded-lg shadow-2xl text-white w-full max-w-md">
+            <h2 class="text-2xl font-bold mb-4">Zoll X Simulator Control</h2>
+            <p class="mb-6">Enter a session ID to connect the simulator to a controller. Use the same ID on your controller device.</p>
+            <input type="text" id="session-id-input" class="w-full p-3 bg-gray-800 rounded-md border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., training-room-1">
+            <button id="connect-btn" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md transition-colors">Connect & Start Simulation</button>
+             <p class="mt-4 text-xs text-gray-400">If the session ID doesn't exist, a new one will be created with a default patient state (Normal Sinus Rhythm).</p>
+        </div>
+    </div>
+
+    <!-- Main Zoll Device Body -->
+    <div id="zoll-device" class="hidden w-full max-w-5xl bg-zoll-bg-gray p-4 rounded-2xl shadow-2xl border-4 border-gray-500">
+        <div class="flex flex-col">
+            <!-- Top Handle -->
+            <div class="h-10 bg-gray-500 rounded-t-lg mb-2 mx-20"></div>
+            <!-- Main Body with Screen and Controls -->
+            <div class="bg-zoll-bg-blue p-4 rounded-xl flex flex-col lg:flex-row gap-4">
+
+                <!-- Screen and Side Buttons -->
+                <div class="flex-grow flex flex-col">
+                     <!-- Top Visual Alarm Indicators -->
+                    <div class="flex justify-center items-center gap-2 mb-2">
+                         <div id="alarm-indicator-red" class="alarm-indicator bg-red-800 rounded"></div>
+                         <div id="alarm-indicator-yellow" class="alarm-indicator bg-yellow-800 rounded"></div>
+                         <div id="alarm-indicator-cyan" class="alarm-indicator bg-cyan-800 rounded"></div>
+                    </div>
+                    <div class="flex gap-2">
+                        <!-- Quick Access Keys -->
+                        <div class="flex flex-col justify-between space-y-2">
+                            <button id="btn-lead" class="quick-access-btn">
+                                <span class="text-xs">I, II, III...</span>
+                            </button>
+                             <button id="btn-12-lead" class="quick-access-btn">
+                                <span class="font-bold text-lg">12</span>
+                                <span class="text-xs -mt-1">LEAD</span>
+                            </button>
+                            <button id="btn-co2" class="quick-access-btn">
+                                <span class="text-xs">CO₂</span>
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            </button>
+                            <button id="btn-summary" class="quick-access-btn">
+                                <span>📄</span><span class="text-xs">Summary</span>
+                            </button>
+                             <button id="btn-alarms" class="quick-access-btn">
+                                <span>🔔</span> <span class="text-xs">Alarms</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Main Display Screen -->
+                        <div id="screen" class="zoll-screen-bg flex-1 p-2 rounded-lg border-2 border-black grid grid-rows-3 grid-cols-1">
+                            <!-- Top Info Bar -->
+                            <div class="row-span-3 flex flex-col">
+                                <div class="flex justify-between items-center text-sm text-gray-400 px-2">
+                                    <span id="date-time">01/01/2025 12:00:00</span>
+                                    <span class="bg-blue-800 text-white px-3 py-0.5 rounded">Adult</span>
+                                    <div class="flex items-center gap-2">
+                                        <div id="battery-indicator" class="w-8 h-4 border-2 border-green-500 rounded flex items-center p-0.5"><div class="bg-green-500 h-full w-full rounded-sm"></div></div>
+                                        <span id="elapsed-time">00:00:00</span>
+                                    </div>
+                                </div>
+                                <div id="alarm-message-area" class="text-center font-bold text-xl h-8"></div>
+                                <!-- Waveform Area -->
+                                <div class="flex-grow relative">
+                                    <canvas id="ecg-canvas" class="w-full h-full"></canvas>
+                                </div>
+                                <!-- Vitals Area -->
+                                <div class="grid grid-cols-4 gap-1 p-1">
+                                    <div class="bg-[#003c00] text-center rounded-md p-1">
+                                        <span class="text-xs text-gray-300">HR bpm</span>
+                                        <div id="hr-value" class="text-6xl font-black zoll-text-green leading-none">--</div>
+                                    </div>
+                                    <div class="bg-[#00285f] text-center rounded-md p-1">
+                                        <span class="text-xs text-gray-300">NIBP mmHg</span>
+                                        <div id="nibp-value" class="text-4xl font-black zoll-text-blue leading-tight">--/--</div>
+                                        <div id="nibp-mean" class="text-xl text-gray-300">(--)</div>
+                                    </div>
+                                     <div class="bg-[#6a003a] text-center rounded-md p-1">
+                                        <span class="text-xs text-gray-300">EtCO2 mmHg</span>
+                                        <div id="etco2-value" class="text-6xl font-black zoll-text-pink leading-none">--</div>
+                                    </div>
+                                    <div class="bg-[#5f5f00] text-center rounded-md p-1 relative">
+                                        <span class="text-xs text-gray-300">SpO2 %</span>
+                                        <div id="spo2-value" class="text-6xl font-black zoll-text-yellow leading-none">--</div>
+                                        <div class="absolute right-1 bottom-1 w-2 h-10 bg-gray-600 rounded-sm"><div id="pleth-bar" class="w-full bg-yellow-400 rounded-sm" style="height: 80%;"></div></div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-1 p-1 text-sm">
+                                    <div class="text-center"><span class="text-gray-400">T1 °F:</span> <span id="temp-value">--.-</span></div>
+                                    <div class="text-center text-gray-400"><span id="nibp-timer">--:--</span></div>
+                                    <div class="text-center"><span class="text-gray-400">BR:</span> <span id="resp-value">--</span></div>
+                                    <div class="text-center"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side Controls -->
+                        <div class="flex flex-col justify-between space-y-2">
+                           <button class="control-btn" id="btn-silence"><span>🔇</span><span class="text-xs">Silence</span></button>
+                           <button class="control-btn" id="btn-display"><span>🖥️</span><span class="text-xs">Display</span></button>
+                           <button class="control-btn" id="btn-snapshot"><span>📸</span><span class="text-xs">Snapshot</span></button>
+                           <button class="control-btn" id="btn-nibp"><span>🩸</span><span class="text-xs">NIBP</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <!-- Bottom Control Panel -->
+            <div class="bg-zoll-bg-blue p-4 rounded-b-xl flex justify-center items-center gap-4 mt-2">
+                <div class="flex items-center gap-1">
+                    <div class="flex flex-col items-center">
+                        <div class="led led-off" id="aux-power-led"></div>
+                        <span class="text-xs text-gray-400">AUX</span>
+                    </div>
+                     <div class="flex flex-col items-center">
+                        <div class="led led-off" id="battery-charge-led"></div>
+                        <span class="text-xs text-gray-400">BATT</span>
+                    </div>
+                </div>
+
+                <button id="btn-pacer" class="btn-pacer text-white font-bold py-4 px-6 rounded-lg shadow-md">PACER</button>
+                <button id="btn-analyze" class="btn-analyze text-black font-bold py-4 px-6 rounded-lg shadow-md">ANALYZE</button>
+                
+                <div class="flex flex-col items-center">
+                    <span class="text-xs text-white">ENERGY SELECT</span>
+                    <div class="flex gap-2">
+                        <button id="btn-energy-down" class="btn-energy text-black text-2xl font-bold w-12 h-12 rounded-lg shadow-md">▼</button>
+                        <button id="btn-energy-up" class="btn-energy text-black text-2xl font-bold w-12 h-12 rounded-lg shadow-md">▲</button>
+                    </div>
+                </div>
+
+                <button id="btn-charge" class="btn-charge text-black font-bold py-4 px-6 rounded-lg shadow-md">CHARGE</button>
+                <div class="flex flex-col items-center">
+                     <div class="flex items-baseline gap-2">
+                        <span class="text-2xl font-bold text-white">3</span>
+                        <div id="shock-btn-container" class="relative">
+                            <button id="btn-shock" class="btn-shock text-white w-20 h-20 rounded-full flex items-center justify-center text-4xl font-extrabold shadow-lg border-4 border-red-800 disabled:opacity-50 disabled:cursor-not-allowed" disabled>⚡</button>
+                        </div>
+                    </div>
+                    <div id="defib-status-display" class="text-white font-bold mt-2 h-6"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL STATE & CONFIGURATION ---
+        let state = {
+            sessionId: null,
+            patient: {
+                vitals: { hr: 80, spo2: 98, etco2: 38, resp: 12, temp: 98.6, nibp: "120/80", nibpMean: 93 },
+                ecg: { rhythm: 'NSR', lead: 'II', pacerSpikes: false },
+                deviceState: {
+                    mode: 'Monitor', // Monitor, AED, ManualDefib, Pacer
+                    defib: { energy: 120, status: 'disarmed' },
+                    pacer: { active: false, mode: 'Demand', rate: 70, output: 50 },
+                    alarmsOn: true,
+                },
+                events: []
+            },
+            ui: {
+                isCharging: false,
+                chargeStartTime: 0,
+                chargeDuration: 4000, // 4 seconds to charge
+                metronomeOn: false,
+                lastNIBPTime: null,
+                elapsedTimeCounter: 0,
+            }
+        };
+
+        let db, auth;
+        let unsubscribePatient; // To store the Firestore listener
+
+        // --- FIREBASE & INITIALIZATION ---
+        function initializeAppState(signInAnonymously, onAuthStateChanged) {
+            if (!window.firebaseServices) {
+                console.error("Firebase services not available.");
+                // Fallback for local testing without Firebase config
+                document.getElementById('session-modal').innerHTML = '<div class="bg-red-500 p-8 rounded-lg shadow-2xl text-white w-full max-w-md"><h2 class="text-2xl font-bold mb-4">Firebase Not Configured</h2><p>Please provide your Firebase project configuration in the script tag to enable remote control features.</p></div>';
+                return;
+            }
+            auth = window.firebaseServices.auth;
+            db = window.firebaseServices.db;
+            
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    console.log("Authenticated anonymously:", user.uid);
+                } else {
+                    signInAnonymously(auth).catch(error => console.error("Anonymous sign-in failed:", error));
+                }
+            });
+        }
+        
+        async function connectToSession(sessionId) {
+            if (unsubscribePatient) unsubscribePatient(); // Unsubscribe from previous session
+            state.sessionId = sessionId;
+            const patientDocRef = window.firebaseServices.doc(db, `zoll-sim-sessions/${sessionId}`);
+
+            unsubscribePatient = window.firebaseServices.onSnapshot(patientDocRef, (doc) => {
+                if (doc.exists()) {
+                    console.log("Received remote state update");
+                    state.patient = doc.data();
+                } else {
+                    console.log("No such session! Creating new one with default state.");
+                    window.firebaseServices.setDoc(patientDocRef, state.patient);
+                }
+                updateUI();
+            }, (error) => {
+                console.error("Error listening to patient document:", error);
+            });
+            
+            document.getElementById('session-modal').classList.add('hidden');
+            document.getElementById('zoll-device').classList.remove('hidden');
+        }
+
+        async function updateRemoteState(partialState) {
+            if (!state.sessionId) return;
+            const patientDocRef = window.firebaseServices.doc(db, `zoll-sim-sessions/${state.sessionId}`);
+            await window.firebaseServices.updateDoc(patientDocRef, partialState);
+        }
+
+        async function logEvent(eventDescription, details = {}) {
+             if (!state.sessionId) return;
+             const patientDocRef = window.firebaseServices.doc(db, `zoll-sim-sessions/${state.sessionId}`);
+             await window.firebaseServices.updateDoc(patientDocRef, {
+                 events: window.firebaseServices.arrayUnion({
+                     timestamp: window.firebaseServices.serverTimestamp(),
+                     event: eventDescription,
+                     ...details
+                 })
+             });
+        }
+
+
+        // --- UI BINDING & LISTENERS ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const connectBtn = document.getElementById('connect-btn');
+            const sessionIdInput = document.getElementById('session-id-input');
+            
+            connectBtn.addEventListener('click', () => {
+                const sessionId = sessionIdInput.value.trim();
+                if (sessionId) {
+                    connectToSession(sessionId);
+                } else {
+                    alert('Please enter a session ID.');
+                }
+            });
+
+            // Button listeners
+            document.getElementById('btn-energy-up').addEventListener('click', () => changeEnergy(true));
+            document.getElementById('btn-energy-down').addEventListener('click', () => changeEnergy(false));
+            document.getElementById('btn-charge').addEventListener('click', chargeDefib);
+            document.getElementById('btn-shock').addEventListener('click', deliverShock);
+            document.getElementById('btn-analyze').addEventListener('click', analyzeRhythm);
+            document.getElementById('btn-pacer').addEventListener('click', togglePacer);
+            document.getElementById('btn-nibp').addEventListener('click', startNIBP);
+        });
+        
+        // --- SIMULATOR LOGIC ---
+        function changeEnergy(increase) {
+            const energies = [1,2,3,4,5,6,7,8,9,10,15,20,30,50,70,85,100,120,150,200];
+            let currentIndex = energies.indexOf(state.patient.deviceState.defib.energy);
+            if (increase && currentIndex < energies.length - 1) {
+                currentIndex++;
+            } else if (!increase && currentIndex > 0) {
+                currentIndex--;
+            }
+            const newEnergy = energies[currentIndex];
+            updateRemoteState({ 'deviceState.defib.energy': newEnergy });
+            logEvent(`Energy selected: ${newEnergy}J`);
+            
+            // Disarm if charged
+            if(state.patient.deviceState.defib.status === 'charged') {
+                updateRemoteState({'deviceState.defib.status': 'disarmed'});
+            }
+        }
+
+        function chargeDefib() {
+            if (state.ui.isCharging || state.patient.deviceState.defib.status === 'charged') return;
+            
+            state.ui.isCharging = true;
+            state.ui.chargeStartTime = performance.now();
+            updateRemoteState({'deviceState.defib.status': 'charging'});
+            logEvent(`Charging to ${state.patient.deviceState.defib.energy}J`);
+            
+            // The animation loop will handle the rest
+        }
+
+        function deliverShock() {
+            if (state.patient.deviceState.defib.status !== 'charged') return;
+
+            // Simulate shock flash
+            const screen = document.getElementById('screen');
+            screen.classList.add('bg-white');
+            setTimeout(() => screen.classList.remove('bg-white'), 100);
+
+            logEvent(`Shock delivered`, { energy: state.patient.deviceState.defib.energy });
+
+            // Disarm after shock
+            updateRemoteState({
+                'deviceState.defib.status': 'disarmed',
+                // If rhythm was VF/VT, change to Asystole post-shock
+                'ecg.rhythm': (state.patient.ecg.rhythm === 'VF' || state.patient.ecg.rhythm === 'VT') ? 'Asystole' : state.patient.ecg.rhythm
+            });
+        }
+        
+        function analyzeRhythm() {
+            logEvent("Rhythm analysis started");
+            const defibStatusDisplay = document.getElementById('defib-status-display');
+            defibStatusDisplay.textContent = "ANALYZING...";
+            
+            setTimeout(() => {
+                const rhythm = state.patient.ecg.rhythm;
+                if (rhythm === 'VF' || rhythm === 'VT') {
+                    defibStatusDisplay.textContent = "SHOCK ADVISED";
+                    updateRemoteState({'deviceState.defib.status': 'shock_advised'});
+                    logEvent("Analysis complete: Shock advised");
+                    chargeDefib();
+                } else {
+                    defibStatusDisplay.textContent = "NO SHOCK ADVISED";
+                    logEvent("Analysis complete: No shock advised");
+                    setTimeout(() => defibStatusDisplay.textContent = "", 2000);
+                }
+            }, 5000); // 5 second analysis
+        }
+
+        function togglePacer() {
+            const newPacerState = !state.patient.deviceState.pacer.active;
+            updateRemoteState({'deviceState.pacer.active': newPacerState});
+            logEvent(newPacerState ? 'Pacer ON' : 'Pacer OFF');
+        }
+
+        function startNIBP() {
+            if (state.ui.lastNIBPTime && (Date.now() - state.ui.lastNIBPTime < 15000)) return; // prevent spamming
+            state.ui.lastNIBPTime = Date.now();
+            logEvent("NIBP measurement started");
+            const nibpDisplay = document.getElementById('nibp-value');
+            const nibpMeanDisplay = document.getElementById('nibp-mean');
+            nibpDisplay.textContent = "---/---";
+            nibpMeanDisplay.textContent = "(---)";
+            
+            setTimeout(() => {
+                logEvent("NIBP measurement complete");
+                // The onSnapshot will update the display with the new value from remote.
+                // For local simulation, you would update the state here.
+            }, 10000); // 10 second measurement
+        }
+
+        // --- UI UPDATE & RENDERING ---
+        function updateUI() {
+            const patientData = state.patient;
+            
+            // Vitals
+            document.getElementById('hr-value').textContent = patientData.vitals.hr;
+            document.getElementById('spo2-value').textContent = patientData.vitals.spo2;
+            document.getElementById('etco2-value').textContent = patientData.vitals.etco2;
+            document.getElementById('nibp-value').textContent = patientData.vitals.nibp;
+            document.getElementById('nibp-mean').textContent = `(${patientData.vitals.nibpMean})`;
+            document.getElementById('temp-value').textContent = patientData.vitals.temp;
+            document.getElementById('resp-value').textContent = patientData.vitals.resp;
+
+            // Defib Status
+            const defibStatus = patientData.deviceState.defib.status;
+            const energy = patientData.deviceState.defib.energy;
+            const defibStatusDisplay = document.getElementById('defib-status-display');
+            const chargeBtn = document.getElementById('btn-charge');
+            const shockBtn = document.getElementById('btn-shock');
+
+            shockBtn.disabled = true;
+            chargeBtn.classList.remove('blinking');
+            shockBtn.classList.remove('blinking');
+            defibStatusDisplay.textContent = `${energy} J`;
+
+            if (defibStatus === 'charging') {
+                defibStatusDisplay.textContent = `CHARGING... ${energy} J`;
+                chargeBtn.classList.add('blinking');
+            } else if (defibStatus === 'charged') {
+                defibStatusDisplay.textContent = `${energy} J READY`;
+                shockBtn.disabled = false;
+                shockBtn.classList.add('blinking');
+            } else if (defibStatus === 'shock_advised') {
+                defibStatusDisplay.textContent = "SHOCK ADVISED";
+            }
+        }
+        
+        // --- CANVAS & WAVEFORM DRAWING ---
+        const canvas = document.getElementById('ecg-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let time = 0;
+        
+        function resizeCanvas() {
+            width = canvas.parentElement.clientWidth;
+            height = canvas.parentElement.clientHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        
+        function drawGrid() {
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 0.5;
+            
+            // Major grid
+            for (let x = 0; x < width; x += 25) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += 25) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            // Minor grid
+             ctx.strokeStyle = '#222';
+            for (let x = 0; x < width; x += 5) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += 5) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+        }
+        
+        function getECGValue(t, rhythm) {
+            const hr = state.patient.vitals.hr || 75;
+            const freq = hr / 60.0;
+            const period = 1.0 / freq;
+            t = t % period;
+            
+            const p_dur = 0.09, t_dur = 0.18, qrs_dur = 0.11;
+            const p_amp = 0.15, q_amp = -0.1, r_amp = 1.0, s_amp = -0.25, t_amp = 0.3;
+
+            switch (rhythm) {
+                case 'VF':
+                    return (Math.random() - 0.5) * 1.5 + (Math.sin(t*50) * 0.2);
+                case 'VT':
+                     return Math.sin(t * freq * 2 * Math.PI * 2.5) * 0.8;
+                case 'Asystole':
+                    return (Math.random() - 0.5) * 0.05;
+                case 'NSR':
+                default:
+                    // P wave
+                    if (t < p_dur) return p_amp * Math.sin((t / p_dur) * Math.PI);
+                    // QRS complex
+                    if (t > 0.1 && t < 0.1 + qrs_dur) {
+                        const qrs_t = t - 0.1;
+                        if (qrs_t < qrs_dur / 4) return (q_amp / (qrs_dur / 4)) * qrs_t;
+                        if (qrs_t < qrs_dur / 2) return q_amp + ((r_amp - q_amp) / (qrs_dur/4)) * (qrs_t - qrs_dur/4);
+                        if (qrs_t < (3*qrs_dur)/4) return r_amp + ((s_amp - r_amp) / (qrs_dur/4)) * (qrs_t - qrs_dur/2);
+                        return s_amp + (-s_amp / (qrs_dur/4)) * (qrs_t - (3*qrs_dur)/4);
+                    }
+                    // T wave
+                    if (t > 0.25 && t < 0.25 + t_dur) {
+                        const t_t = t - 0.25;
+                        return t_amp * Math.sin((t_t / t_dur) * Math.PI);
+                    }
+                    return 0; // Isoelectric line
+            }
+        }
+        
+        const waveformData = new Array(2000).fill(0);
+        let dataIndex = 0;
+
+        function animationLoop(timestamp) {
+            // Update elapsed time
+            state.ui.elapsedTimeCounter++;
+            if (state.ui.elapsedTimeCounter % 60 === 0) {
+                const totalSeconds = Math.floor(state.ui.elapsedTimeCounter / 60);
+                const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+                const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+                const seconds = String(totalSeconds % 60).padStart(2, '0');
+                document.getElementById('elapsed-time').textContent = `${hours}:${minutes}:${seconds}`;
+
+                // Update date/time every minute
+                if (minutes % 1 === 0 && seconds === "00") {
+                    const now = new Date();
+                    document.getElementById('date-time').textContent = now.toLocaleString();
+                }
+            }
+
+            // Charging logic
+            if(state.ui.isCharging) {
+                const elapsedTime = performance.now() - state.ui.chargeStartTime;
+                if (elapsedTime >= state.ui.chargeDuration) {
+                    state.ui.isCharging = false;
+                    updateRemoteState({'deviceState.defib.status': 'charged'});
+                }
+            }
+
+            // Drawing logic
+            ctx.clearRect(0, 0, width, height);
+            drawGrid();
+
+            const samplesToDraw = 5;
+            for(let i=0; i<samplesToDraw; i++){
+                const y = getECGValue(time, state.patient.ecg.rhythm);
+                waveformData[dataIndex] = y;
+                dataIndex = (dataIndex + 1) % waveformData.length;
+                time += 0.004;
+            }
+
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            const verticalCenter = height / 2.5; // ECG trace is usually in upper half
+            const amplitude = 50;
+            
+            for (let i = 0; i < width; i++) {
+                const idx = (dataIndex + i - width + waveformData.length) % waveformData.length;
+                const y = verticalCenter - waveformData[idx] * amplitude;
+                if (i === 0) {
+                    ctx.moveTo(i, y);
+                } else {
+                    ctx.lineTo(i, y);
+                }
+            }
+            ctx.stroke();
+            
+            // Draw lead name
+            ctx.fillStyle = '#00ff00';
+            ctx.font = '16px Inter';
+            ctx.fillText(state.patient.ecg.lead || 'II', 10, 20);
+
+            requestAnimationFrame(animationLoop);
+        }
+
+        resizeCanvas();
+        requestAnimationFrame(animationLoop);
+
+
+    </script>
+</body>
+</html>
+
